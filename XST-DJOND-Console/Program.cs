@@ -1,11 +1,13 @@
 ﻿using Newtonsoft.Json;
-
+using System.Drawing;
 using System.Dynamic;
+using System.Net;
 
 namespace XST_DJOND_Console
 {
     internal class Program
     {
+
         static void Main(string[] args)
         {
 
@@ -43,32 +45,117 @@ namespace XST_DJOND_Console
 
             // 确认选择是否合法
 
-            if (!firstJsonData.HasPropertys(field))
+            if (!jsonDataList[0].ContainsKey(field))
             {
                 Console.WriteLine("无效的字段选择！");
                 return;
             }
+            Console.WriteLine($"- 图片");
+            Console.WriteLine($"- 视频");
+            Console.Write("请选择下载类型：");
+            string DownloadType = Console.ReadLine().Trim();
 
+            int totalProgress = jsonDataList.Count;
+            int i = 0;
             // 下载指定字段的内容
             foreach (var jsonData in jsonDataList)
             {
                 string fieldValue = jsonData[field];
-                Console.WriteLine($"已选择的字段值：{fieldValue}");
-
-                // 在这里执行下载操作，使用 fieldValue 作为下载地址
-                // 下载操作可以是您的下载逻辑或调用其他方法
+                //Console.WriteLine($"已选择的字段值：{fieldValue}");
+                if (DownloadType == "图片")
+                {
+                    SaveImg(fieldValue);
+                }
+                else
+                {
+                    SaveVideo(fieldValue);
+                }
+                i++;
+                DrawProgressBar(i, totalProgress);
+                Thread.Sleep(1000);
+              
             }
-
+            Console.WriteLine("\n下载完成!");
+            Console.ReadLine();
         }
-
-
-    }
-    public static class DynamicExtensions
-    {
-        public static bool HasPropertys(this object obj, string propertyName)
+        public static void SaveVideo(string videoUrl, string path = "Video")
         {
-            var objType = obj.GetType();
-            return objType.GetProperty(propertyName) != null;
+            try
+            {
+                // 创建Web请求
+                HttpWebRequest webRequest = (HttpWebRequest)WebRequest.Create(videoUrl);
+                webRequest.Method = "GET";
+                webRequest.Accept = "video/mp4,video/x-m4v,video/*;q=0.9";
+                webRequest.Headers.Add("Accept-Language", "zh-cn,zh;q=0.8,en-us;q=0.5,en;q=0.3");
+                webRequest.UserAgent = "Mozilla/5.0 (Windows NT 5.2; rv:12.0) Gecko/20100101 Firefox/12.0";
+
+                // 获取Web响应
+                HttpWebResponse webResponse = (HttpWebResponse)webRequest.GetResponse();
+
+                // 打开文件流以保存视频
+                string fileName = DateTime.Now.ToFileTime().ToString() + ".mp4";
+                if (!Directory.Exists(path))
+                {
+                    Directory.CreateDirectory(path);
+                }
+                string filePath = Path.Combine(path, fileName);
+                using (FileStream fileStream = new FileStream(filePath, FileMode.Create))
+                {
+                    // 将视频数据写入文件流
+                    using (Stream webStream = webResponse.GetResponseStream())
+                    {
+                        byte[] buffer = new byte[4096];
+                        int bytesRead;
+                        while ((bytesRead = webStream.Read(buffer, 0, buffer.Length)) > 0)
+                        {
+                            fileStream.Write(buffer, 0, bytesRead);
+                        }
+                    }
+                }
+
+                // Console.WriteLine($"视频已保存到：{filePath}");
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine($"异常：{e}");
+            }
         }
+        public static void SaveImg(string data, string path = "Img")
+        {
+            System.Net.HttpWebRequest webRequest = (System.Net.HttpWebRequest)System.Net.WebRequest.Create(data);
+            webRequest.Method = "GET";
+            webRequest.Accept = "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8";
+            webRequest.Headers.Add("Accept-Language", "zh-cn,zh;q=0.8,en-us;q=0.5,en;q=0.3");
+            webRequest.UserAgent = "Mozilla/5.0 (Windows NT 5.2; rv:12.0) Gecko/20100101 Firefox/12.0";
+            System.Net.HttpWebResponse webResponse = (System.Net.HttpWebResponse)webRequest.GetResponse();
+
+            System.IO.Stream s = webResponse.GetResponseStream();
+            System.Drawing.Image img = System.Drawing.Bitmap.FromStream(s);
+            if (!Directory.Exists(path))
+            {
+                Directory.CreateDirectory(path);
+            }
+            string fileName = DateTime.Now.ToFileTime().ToString() + ".jpg";
+            string filePath = Path.Combine(path, fileName);
+            Bitmap bmp = new Bitmap(img);
+
+            bmp.Save(filePath);
+            img.Dispose();
+            s.Close();
+
+        }
+        public static void DrawProgressBar(int progress, int total)
+        {
+            Console.Write("\r"); // 光标移动到行首
+            int barLength = 30;
+            int filledLength = (int)(((double)progress / total) * barLength);
+
+
+            string progressBar = "[" + new string('#', filledLength) + new string('-', barLength - filledLength) + "]";
+            Console.Write(progressBar + $" {progress * 100 / total}%");
+        }
+
+
     }
+
 }
