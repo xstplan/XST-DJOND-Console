@@ -1,4 +1,5 @@
 ﻿using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using System.Drawing;
 using System.Dynamic;
 using System.Net;
@@ -55,12 +56,32 @@ namespace XST_DJOND_Console
             Console.Write("请选择下载类型：");
             string DownloadType = Console.ReadLine().Trim();
 
+
+            Console.WriteLine("可选字段列表：");
+            foreach (var property in firstJsonData)
+            {
+                Console.WriteLine($"- {property.Name}");
+            }
+            Console.Write("请输入去重字段：");
+            string idFieldName = Console.ReadLine().Trim();
+            // 存储已下载的ID
+            HashSet<string> downloadedIds = new HashSet<string>();
+
             int totalProgress = jsonDataList.Count;
             int i = 0;
             // 下载指定字段的内容
+
             foreach (var jsonData in jsonDataList)
             {
                 string fieldValue = jsonData[field];
+              
+                string idValue = jsonData[idFieldName].ToString();
+                // 如果ID已经存在于已下载集合中，则跳过
+                if (downloadedIds.Contains(idValue))
+                {
+                    Console.WriteLine($"ID为 {idValue} 的数据已经下载过，跳过...");
+                    continue;
+                }
                 //Console.WriteLine($"已选择的字段值：{fieldValue}");
                 if (DownloadType == "图片")
                 {
@@ -70,6 +91,8 @@ namespace XST_DJOND_Console
                 {
                     SaveVideo(fieldValue);
                 }
+                // 将ID添加到已下载集合中
+                downloadedIds.Add(idValue);
                 i++;
                 DrawProgressBar(i, totalProgress);
                 Thread.Sleep(1000);

@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("XST-DJOND-Console")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+64a1535b68925ba1000c1a088c1fe237b6b875aa")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+5324df97f63b42014b9b8f8e61a9292c6bacc76a")]
 [assembly: System.Reflection.AssemblyProductAttribute("XST-DJOND-Console")]
 [assembly: System.Reflection.AssemblyTitleAttribute("XST-DJOND-Console")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
