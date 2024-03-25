@@ -175,7 +175,7 @@ namespace XST_DJOND_Console
 
 
             string progressBar = "[" + new string('#', filledLength) + new string('-', barLength - filledLength) + "]";
-            Console.Write(progressBar + $" {progress * 100 / total}%");
+            Console.Write(progressBar + $" {progress * 100.0 / total}%");
         }
 
 
