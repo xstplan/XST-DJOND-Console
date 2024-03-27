@@ -64,6 +64,12 @@ namespace XST_DJOND_Console
             }
             Console.Write("请输入去重字段：");
             string idFieldName = Console.ReadLine().Trim();
+
+
+            Console.Write("请输入保存名称字段：");
+            string fileName = Console.ReadLine().Trim();
+
+
             // 存储已下载的ID
             HashSet<string> downloadedIds = new HashSet<string>();
 
@@ -89,7 +95,7 @@ namespace XST_DJOND_Console
                 }
                 else
                 {
-                    SaveVideo(fieldValue);
+                    SaveVideo(fieldValue, jsonData[fileName]);
                 }
                 // 将ID添加到已下载集合中
                 downloadedIds.Add(idValue);
@@ -101,7 +107,7 @@ namespace XST_DJOND_Console
             Console.WriteLine("\n下载完成!");
             Console.ReadLine();
         }
-        public static void SaveVideo(string videoUrl, string path = "Video")
+        public static void SaveVideo(string videoUrl,string name="", string path = "Video")
         {
             try
             {
