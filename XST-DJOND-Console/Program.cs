@@ -53,6 +53,7 @@ namespace XST_DJOND_Console
             }
             Console.WriteLine($"- 图片");
             Console.WriteLine($"- 视频");
+            Console.WriteLine($"- 图片集合逗号分隔");
             Console.Write("请选择下载类型：");
             string DownloadType = Console.ReadLine().Trim();
 
@@ -80,7 +81,7 @@ namespace XST_DJOND_Console
             foreach (var jsonData in jsonDataList)
             {
                 string fieldValue = jsonData[field];
-              
+
                 string idValue = jsonData[idFieldName].ToString();
                 // 如果ID已经存在于已下载集合中，则跳过
                 if (downloadedIds.Contains(idValue))
@@ -91,66 +92,75 @@ namespace XST_DJOND_Console
                 //Console.WriteLine($"已选择的字段值：{fieldValue}");
                 if (DownloadType == "图片")
                 {
-                    SaveImg(fieldValue);
+                    SaveImg(fieldValue, jsonData[fileName].ToString());
+                }
+                if (DownloadType == "图片集合逗号分隔")
+                {
+                    SaveArrImg(fieldValue, jsonData[fileName].ToString());
                 }
                 else
                 {
-                    SaveVideo(fieldValue, jsonData[fileName]);
+                    SaveVideo(fieldValue, jsonData[fileName].ToString());
                 }
                 // 将ID添加到已下载集合中
                 downloadedIds.Add(idValue);
                 i++;
                 DrawProgressBar(i, totalProgress);
                 Thread.Sleep(1000);
-              
+
             }
             Console.WriteLine("\n下载完成!");
             Console.ReadLine();
         }
-        public static void SaveVideo(string videoUrl,string name="", string path = "Video")
+        public static void SaveVideo(string videoUrl, string name = "", string path = "Video")
         {
             try
             {
-                // 创建Web请求
-                HttpWebRequest webRequest = (HttpWebRequest)WebRequest.Create(videoUrl);
-                webRequest.Method = "GET";
-                webRequest.Accept = "video/mp4,video/x-m4v,video/*;q=0.9";
-                webRequest.Headers.Add("Accept-Language", "zh-cn,zh;q=0.8,en-us;q=0.5,en;q=0.3");
-                webRequest.UserAgent = "Mozilla/5.0 (Windows NT 5.2; rv:12.0) Gecko/20100101 Firefox/12.0";
-
-                // 获取Web响应
-                HttpWebResponse webResponse = (HttpWebResponse)webRequest.GetResponse();
-
-                // 打开文件流以保存视频
-                string fileName = DateTime.Now.ToFileTime().ToString() + ".mp4";
-                if (!Directory.Exists(path))
+             
+                if (videoUrl != "")
                 {
-                    Directory.CreateDirectory(path);
-                }
-                string filePath = Path.Combine(path, fileName);
-                using (FileStream fileStream = new FileStream(filePath, FileMode.Create))
-                {
-                    // 将视频数据写入文件流
-                    using (Stream webStream = webResponse.GetResponseStream())
+                    // 创建Web请求
+                    HttpWebRequest webRequest = (HttpWebRequest)WebRequest.Create(videoUrl);
+                    webRequest.Method = "GET";
+                    webRequest.Accept = "video/mp4,video/x-m4v,video/*;q=0.9";
+                    webRequest.Headers.Add("Accept-Language", "zh-cn,zh;q=0.8,en-us;q=0.5,en;q=0.3");
+                    webRequest.UserAgent = "Mozilla/5.0 (Windows NT 5.2; rv:12.0) Gecko/20100101 Firefox/12.0";
+
+                    // 获取Web响应
+                    HttpWebResponse webResponse = (HttpWebResponse)webRequest.GetResponse();
+
+                    // 打开文件流以保存视频
+                    string fileName = name + "_" + DateTime.Now.ToFileTime().ToString() + ".mp4";
+                    if (!Directory.Exists(path))
                     {
-                        byte[] buffer = new byte[4096];
-                        int bytesRead;
-                        while ((bytesRead = webStream.Read(buffer, 0, buffer.Length)) > 0)
+                        Directory.CreateDirectory(path);
+                    }
+                    string filePath = Path.Combine(path, fileName);
+                    using (FileStream fileStream = new FileStream(filePath, FileMode.Create))
+                    {
+                        // 将视频数据写入文件流
+                        using (Stream webStream = webResponse.GetResponseStream())
                         {
-                            fileStream.Write(buffer, 0, bytesRead);
+                            byte[] buffer = new byte[4096];
+                            int bytesRead;
+                            while ((bytesRead = webStream.Read(buffer, 0, buffer.Length)) > 0)
+                            {
+                                fileStream.Write(buffer, 0, bytesRead);
+                            }
                         }
                     }
-                }
 
-                // Console.WriteLine($"视频已保存到：{filePath}");
+                    // Console.WriteLine($"视频已保存到：{filePath}");
+                }
             }
             catch (Exception e)
             {
                 Console.WriteLine($"异常：{e}");
             }
         }
-        public static void SaveImg(string data, string path = "Img")
+        public static void SaveImg(string data,string name, string path = "Img")
         {
+          
             System.Net.HttpWebRequest webRequest = (System.Net.HttpWebRequest)System.Net.WebRequest.Create(data);
             webRequest.Method = "GET";
             webRequest.Accept = "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8";
@@ -164,7 +174,7 @@ namespace XST_DJOND_Console
             {
                 Directory.CreateDirectory(path);
             }
-            string fileName = DateTime.Now.ToFileTime().ToString() + ".jpg";
+            string fileName = name + "_"+ DateTime.Now.ToFileTime().ToString() + ".jpg";
             string filePath = Path.Combine(path, fileName);
             Bitmap bmp = new Bitmap(img);
 
@@ -173,6 +183,58 @@ namespace XST_DJOND_Console
             s.Close();
 
         }
+
+        public static void SaveArrImg(string data,string name, string path = "Img")
+        {
+
+            foreach (var item in data.Split(','))
+            {
+                try
+                {
+
+               
+                    System.Net.HttpWebRequest webRequest = (System.Net.HttpWebRequest)System.Net.WebRequest.Create(item);
+                    webRequest.Method = "GET";
+                    webRequest.Accept = "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8";
+                    webRequest.Headers.Add("Accept-Language", "zh-cn,zh;q=0.8,en-us;q=0.5,en;q=0.3");
+                    webRequest.UserAgent = "Mozilla/5.0 (Windows NT 5.2; rv:12.0) Gecko/20100101 Firefox/12.0";
+                    System.Net.HttpWebResponse webResponse = (System.Net.HttpWebResponse)webRequest.GetResponse();
+
+                    System.IO.Stream s = webResponse.GetResponseStream();
+                    //System.Drawing.Image img = System.Drawing.Bitmap.FromStream(s);
+                    if (!Directory.Exists(path))
+                    {
+                        Directory.CreateDirectory(path);
+                    }
+                    string fileName = name+"_"+DateTime.Now.ToFileTime().ToString() + ".jpg";
+                    string filePath = Path.Combine(path, fileName);
+                    // 定义要保存的文件路径
+                    string _filePath = Path.Combine(path, fileName);
+
+                    // 使用 FileStream 创建文件，并在 using 语句中确保资源的释放
+                    using (FileStream fs = new FileStream(_filePath, FileMode.Create))
+                    {
+                        // 使用 Stream.CopyTo 方法将 web 响应的流复制到文件流中
+                        s.CopyTo(fs);
+                    }
+                    //string fileName = DateTime.Now.ToFileTime().ToString() + ".jpg";
+                    //string filePath = Path.Combine(path, fileName);
+                    //Bitmap bmp = new Bitmap(img);
+
+                    //bmp.Save(filePath);
+                    //img.Dispose();
+                    //s.Close();
+                }
+                catch (Exception)
+                {
+
+                    continue;
+                }
+            }
+
+
+        }
+
         public static void DrawProgressBar(int progress, int total)
         {
             Console.Write("\r"); // 光标移动到行首
